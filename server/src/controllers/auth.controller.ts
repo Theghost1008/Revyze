@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { registerUser,loginUser } from "../services/auth.service.ts";
+import { AuthRequest } from "../types/auth.types.ts";
 
 export const signup = async(req:Request,res:Response)=>{
     try{
@@ -37,4 +38,14 @@ export const login = async(req:Request,res:Response)=>{
             message:error instanceof Error ? error.message:"Something went wrong while logging in"
         })
     }
+}
+
+export const getMe = async(
+    req:AuthRequest,
+    res:Response
+)=>{
+    return res.status(200).json({
+        succcess:true,
+        data:req.user
+    })
 }
