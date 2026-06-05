@@ -1,6 +1,7 @@
 import mongoose,{Document, Schema} from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import validate from "validator";
 
 export interface IUser extends Document {
     name: string;
@@ -32,7 +33,11 @@ const userSchema = new Schema<IUser>({
         required:true,
         lowercase:true,
         unique:true,
-        trim:true
+        trim:true,
+        validate:{
+            validator: (value:string)=> validate.isEmail(value),
+            message:"Please enter a valid email!"
+        }
     },
     password:{
         type:String,

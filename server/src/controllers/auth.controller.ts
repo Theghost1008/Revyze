@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { registerUser } from "../services/auth.service.ts";
+import { registerUser,loginUser } from "../services/auth.service.ts";
 
 export const signup = async(req:Request,res:Response)=>{
     try{
@@ -12,9 +12,29 @@ export const signup = async(req:Request,res:Response)=>{
         })
     }
     catch(error){
+        console.error(error);//remove while in production
         return res.status(400).json({
             success:false,
             message: error instanceof Error ? error.message : "Something went wrong while registering user"
+        })
+    }
+}
+
+export const login = async(req:Request,res:Response)=>{
+    try{
+        const {email,password} = req.body;
+        const result = await loginUser({email,password});
+        return res.status(200).json({
+            success:true,
+            message:"Logged in successfully!",
+            data:result
+        })
+    }
+    catch(error){
+        console.error(error);//remove while in production
+        return res.status(400).json({
+            success:false,
+            message:error instanceof Error ? error.message:"Something went wrong while logging in"
         })
     }
 }

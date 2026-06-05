@@ -6,6 +6,10 @@ interface RegisterUserInput{
     email: string,
     password: string,
 }
+interface LoginUserInput{
+    email:string,
+    password:string,
+}
 
 export const registerUser = async function({
     name,
@@ -41,3 +45,35 @@ export const registerUser = async function({
         refreshToken
     };
 };
+
+export const loginUser = async function({
+    email,
+    password
+}:LoginUserInput){
+    const foundUser = await User.findOne({email});
+    if(!foundUser)
+        throw new Error("Invalid credentials");
+    const tryLogin = await foundUser.comparePassword(password);
+    if(!tryLogin)
+        throw new Error("Invalid credentials");
+    const accessToken = foundUser.generateAccessToken();
+    const refreshToken = foundUser.generateRefreshToken()
+    const hashedRefreshToken = await bcrypt.hash(
+        refreshToken,
+        10
+    );
+    foundUser.refreshTokens.push(hashedRefreshToken);
+    await foundUser.save();
+    return {
+        user:{
+            id:foundUser._id,
+            name:foundUser.name,
+            email:foundUser.email,
+            role:foundUser.role,
+            currentStreak:foundUser.currentStreak,
+            profilePhoto:foundUser.profilePhoto
+        },
+        accessToken,
+        refreshToken
+    };
+}
