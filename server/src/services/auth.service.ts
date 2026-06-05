@@ -10,6 +10,10 @@ interface LoginUserInput{
     email:string,
     password:string,
 }
+interface LogoutUser{
+    userId:string,
+    refreshToken:string,
+}
 
 export const registerUser = async function({
     name,
@@ -76,4 +80,33 @@ export const loginUser = async function({
         accessToken,
         refreshToken
     };
+}
+
+export const logoutUser = async function({
+    userId,
+    refreshToken
+}:LogoutUser){
+    const foundUser = await User.findById(userId);
+    if(!foundUser)
+        throw new Error("User not found");
+    console.log("Found user: ", foundUser);
+    let tokenFound = false;
+    const updatedTokens:string[] = [];
+    for(const stored of foundUser.refreshTokens){
+        const isMatch = await bcrypt.compare(
+            refreshToken,
+            stored
+        )
+        if(isMatch){
+            tokenFound = true;
+            continue;
+        }
+        updatedTokens.push(stored);
+    }
+    foundUser.refreshTokens = updatedTokens;
+    await foundUser.save();
+    return {
+        success:true,
+        message: tokenFound ? "Logged out successfully" : "Already logged out"
+    }
 }
