@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { registerUser,loginUser, logoutUser } from "../services/auth.service.ts";
+import { registerUser,loginUser, logoutUser,refreshAccessToken } from "../services/auth.service.ts";
 import { AuthRequest } from "../types/auth.types.ts";
 
 export const signup = async(req:Request,res:Response)=>{
@@ -88,6 +88,34 @@ export const logout = async(
         return res.status(400).json({
             success:false,
             message: error instanceof Error ? error.message:"Something went wrong while logging out"
+        })
+    }
+}
+
+export const refresh = async(
+    req:AuthRequest,
+    res:Response
+)=>{
+    try{
+        const refreshToken = req.cookies?.refreshToken;
+        const result = await refreshAccessToken({refreshToken});
+        res.cookie("refreshToken", result.refreshToken,
+            {
+                httpOnly:true,
+                secure:process.env.NODE_ENV=="production",
+                sameSite:"strict"
+            }
+        )
+        return res.status(200).json({
+            success:true,
+            message:"Token refreshed",
+            accessToken : result.accessToken
+        })
+    }
+    catch(error){
+        return res.status(401).json({
+            success:false,
+            message: error instanceof Error ? error.message : "Unable to refresh token"
         })
     }
 }
